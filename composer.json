@@ -2,10 +2,10 @@
   "name": "casperlaitw/filesys",
   "description": "Laravel - Filemanager extension, Fork from crip-laravel/filesys",
   "require": {
-    "casperlaitw/core": "^4.0",
-    "illuminate/support": "^8.0",
+    "casperlaitw/core": "^5.0",
+    "illuminate/support": "^9.0",
     "intervention/image": "^2.3",
-    "php": ">=7.0"
+    "php": "^8.0"
   },
   "require-dev": {
     "league/flysystem-vfs": "^1.0",
