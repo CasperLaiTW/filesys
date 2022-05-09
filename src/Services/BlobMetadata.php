@@ -36,22 +36,16 @@ class BlobMetadata implements ICripObject
         $this->storage = app()->make('filesystem');
         $this->path = $path;
 
+        $this->type = $this->storage->directoryExists($path) ? 'dir' : 'file';
         if ($this->exists()) {
             list($this->dir, $this->name) = FileSystem::splitNameFromPath($path);
-            $this->type = $this->storage->directoryExists($path) ? 'dir' : 'file';
 
-            $this->lastModified = $this->isFile() ? $this->storage->lastModified($path) : null;
 
-            $this->size = $this->isFile() ? $this->storage->size($path) : 0;
+            $this->size = 0;
 
             if ($this->isFile()) {
                 list($this->name, $this->extension) = $this->splitNameAndExtension($this->name);
-
-                try {
-                    $this->mimeType = $this->storage->mimeType($this->path);
-                } catch (\Exception $ex) {
-                    $this->mimeType = self::guessMimeType($this->extension, $this->isFile());
-                }
+                $this->mimeType = self::guessMimeType($this->extension, $this->isFile());
             }
         }
 
@@ -85,12 +79,7 @@ class BlobMetadata implements ICripObject
      */
     public function exists()
     {
-        if (!$this->isExistExecuted && $this->path !== null) {
-            $this->exists = $this->storage->exists($this->path);
-            $this->isExistExecuted = true;
-        }
-
-        return $this->exists;
+        return true;
     }
 
     /**
