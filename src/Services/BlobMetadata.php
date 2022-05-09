@@ -38,11 +38,11 @@ class BlobMetadata implements ICripObject
 
         if ($this->exists()) {
             list($this->dir, $this->name) = FileSystem::splitNameFromPath($path);
-            $this->lastModified = $this->storage->lastModified($path);
+            $this->type = $this->storage->directoryExists($path) ? 'dir' : 'file';
 
-            $this->size = $this->storage->size($path);
+            $this->lastModified = $this->isFile() ? $this->storage->lastModified($path) : null;
 
-            $this->type = $this->storage->mimeType($path);
+            $this->size = $this->isFile() ? $this->storage->size($path) : 0;
 
             if ($this->isFile()) {
                 list($this->name, $this->extension) = $this->splitNameAndExtension($this->name);
