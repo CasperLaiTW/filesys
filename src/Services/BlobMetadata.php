@@ -37,7 +37,7 @@ class BlobMetadata implements ICripObject
         $this->storage = app()->make('filesystem');
         $this->path = $path;
 
-        $this->type = File::extension($path) ? 'dir' : 'file';
+        $this->type = blank(File::extension($path)) ? 'dir' : 'file';
         if ($this->exists()) {
             list($this->dir, $this->name) = FileSystem::splitNameFromPath($path);
 
