@@ -45,7 +45,7 @@ class BlobMetadata implements ICripObject
 
             if ($this->isFile()) {
                 list($this->name, $this->extension) = $this->splitNameAndExtension($this->name);
-                $this->mimeType = self::guessMimeType($this->extension, $this->isFile());
+                $this->mimeType = self::guessMimeType(strtolower($this->extension), $this->isFile());
             }
         }
 
