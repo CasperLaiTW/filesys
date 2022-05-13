@@ -3,6 +3,7 @@
 use Crip\Core\Contracts\ICripObject;
 use Crip\Core\Helpers\FileSystem;
 use Crip\Core\Helpers\Str;
+use Illuminate\Support\Facades\File;
 
 /**
  * Class BlobMetadata
@@ -36,10 +37,9 @@ class BlobMetadata implements ICripObject
         $this->storage = app()->make('filesystem');
         $this->path = $path;
 
-        $this->type = $this->storage->directoryExists($path) ? 'dir' : 'file';
+        $this->type = File::extension($path) ? 'dir' : 'file';
         if ($this->exists()) {
             list($this->dir, $this->name) = FileSystem::splitNameFromPath($path);
-
 
             $this->size = 0;
 
