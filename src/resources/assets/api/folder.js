@@ -10,7 +10,7 @@ export default {
    */
   content (path) {
     return new Promise((resolve, reject) => {
-      vue.http.get(`${settings.foldersUrl}/${path}`)
+      vue.http.get(settings.getUrl(settings.foldersUrl, path))
         .then(({data}) => {
           let blobs = data.map(blob => new Blob(blob))
           resolve(blobs)
@@ -39,7 +39,7 @@ export default {
    */
   update (blob, name) {
     return new Promise((resolve, reject) => {
-      vue.http.patch(`${settings.foldersUrl}/${blob.path}`, {name})
+      vue.http.patch(settings.getUrl(settings.foldersUrl, blob.path), {name})
         .then(({data}) => { resolve(new Blob(data)) }, reject)
     })
   },
@@ -51,7 +51,7 @@ export default {
    */
   delete (blob) {
     return new Promise((resolve, reject) => {
-      vue.http.delete(`${settings.foldersUrl}/${blob.path}`)
+      vue.http.delete(settings.getUrl(settings.foldersUrl, blob.path))
         .then(({data}) => { resolve(!!data) }, reject)
     })
   }

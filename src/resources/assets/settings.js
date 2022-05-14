@@ -1,4 +1,12 @@
+import parse from 'url-parse'
+
 let settings = document.getElementById('settings')
+
+const getUrl = function (url, path) {
+  const uri = parse(url)
+  uri.set('pathname', `${uri.pathname}/${path}`)
+  return uri.href
+}
 
 /**
  * Get setting configuration from app headers.
@@ -24,6 +32,7 @@ const mediaTypes = {
 }
 
 export default {
+  getUrl,
   authorization: getSettings('authorization', true),
   dirIcon: getSettings('dir-icon-url'),
   filesUrl: getSettings('files-url'),
