@@ -228,9 +228,9 @@ class FilesysManager implements ICripObject
     public function isFile()
     {
         if ($this->blobExists()) {
-            $metadata = $this->storage->getMetaData($this->blob->path);
+            $type = blank(\Illuminate\Support\Facades\File::extension($this->blob->path)) ? 'dir' : 'file';
 
-            return $metadata['type'] === 'file';
+            return $type === 'file';
         }
 
         return false;
