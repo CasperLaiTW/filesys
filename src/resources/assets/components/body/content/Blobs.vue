@@ -41,8 +41,8 @@
       content () {
         return this.blobs.sort((a, b) => {
           if ((a.isDir && b.isDir) || (!a.isDir && !b.isDir)) {
-            if (a.name < b.name) return -1
-            if (a.name > b.name) return 1
+            if (a.updatedAt < b.updatedAt) return 1
+            if (a.updatedAt > b.updatedAt) return -1
             return 0
           }
 

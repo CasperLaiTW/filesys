@@ -7,6 +7,7 @@ use Crip\Core\Support\PackageBase;
 use Crip\Filesys\App\File;
 use Crip\Filesys\App\Folder;
 use Illuminate\Http\UploadedFile;
+use League\Flysystem\StorageAttributes;
 
 /**
  * Class FilesysManager
@@ -164,14 +165,14 @@ class FilesysManager implements ICripObject
     /**
      * Fetch folder content of the storage directory.
      * @return array
+     * @throws \League\Flysystem\FilesystemException
      */
     public function folderContent()
     {
         $result = [];
         $path = $this->ensureUserPath($this->blob->path);
 
-        $list = collect($this->storage->getDriver()->listContents($path))
-            ->pluck('path');
+        $list = $this->storage->getDriver()->listContents($path);
 
         $exclude = (new ThumbService($this->package))->getSizes()->all();
         $isExcluded = function ($path) use ($exclude) {
@@ -183,16 +184,18 @@ class FilesysManager implements ICripObject
             return false;
         };
 
-        $list->each(function ($glob) use (&$result, $isExcluded) {
-            if ($isExcluded($glob)) {
+
+        /** @var StorageAttributes $glob */
+        foreach ($list as $glob) {
+            if ($isExcluded($glob->path())) {
                 // skip any thumbs dir and do not show it for users
                 return;
             }
 
             $result[] = (new Blob($this->package))
-                ->setPath($glob)
+                ->setGlob($glob)
                 ->fullDetails();
-        });
+        }
 
         return $result;
     }

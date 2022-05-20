@@ -5,6 +5,7 @@ use Crip\Core\Helpers\Str;
 use Crip\Core\Support\PackageBase;
 use Crip\Filesys\App\File;
 use Crip\Filesys\App\Folder;
+use League\Flysystem\StorageAttributes;
 
 /**
  * Class Blob
@@ -12,6 +13,9 @@ use Crip\Filesys\App\Folder;
  */
 class Blob implements ICripObject
 {
+    /**
+     * @var
+     */
     public $path;
 
     /**
@@ -29,7 +33,14 @@ class Blob implements ICripObject
      */
     private $storage;
 
+    /**
+     * @var null
+     */
     private $thumbsDetails = null;
+    /**
+     * @var StorageAttributes
+     */
+    private StorageAttributes $glob;
 
     /**
      * Blob constructor.
@@ -39,6 +50,16 @@ class Blob implements ICripObject
     {
         $this->package = $package;
         $this->storage = app()->make('filesystem');
+    }
+
+    /**
+     * @param StorageAttributes $glob
+     * @return $this
+     */
+    public function setGlob(StorageAttributes $glob)
+    {
+        $this->glob = $glob;
+        return $this;
     }
 
     /**
@@ -67,7 +88,17 @@ class Blob implements ICripObject
      */
     public function fullDetails($metadata = null)
     {
-        $this->metadata = $metadata ?: (new BlobMetadata())->init($this->path);
+        if ($metadata) {
+            $this->metadata = $metadata;
+        } else if ($this->glob) {
+            if (!$this->path) {
+                $this->setPath($this->glob->path());
+            }
+
+            $this->metadata = (new BlobMetadata())->initGlob($this->glob);
+        } else {
+            $this->metadata = (new BlobMetadata())->init($this->path);
+        }
 
         if (!$this->metadata->exists()) {
             throw new \Exception('File not found');
@@ -296,5 +327,13 @@ class Blob implements ICripObject
         }
 
         return $userFolder . '/' . $path;
+    }
+
+    /**
+     * @return int
+     */
+    public function lastModified(): int
+    {
+        return $this->metadata->getLastModified();
     }
 }

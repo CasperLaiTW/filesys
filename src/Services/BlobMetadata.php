@@ -3,7 +3,9 @@
 use Crip\Core\Contracts\ICripObject;
 use Crip\Core\Helpers\FileSystem;
 use Crip\Core\Helpers\Str;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use League\Flysystem\StorageAttributes;
 
 /**
  * Class BlobMetadata
@@ -16,21 +18,53 @@ class BlobMetadata implements ICripObject
      */
     private $storage;
 
+    /**
+     * @var bool
+     */
     private $isExistExecuted = false;
+    /**
+     * @var bool
+     */
     private $exists = false;
+    /**
+     * @var null
+     */
     private $path = null;
+    /**
+     * @var
+     */
     private $lastModified;
+    /**
+     * @var
+     */
     private $name;
+    /**
+     * @var
+     */
     private $dir;
+    /**
+     * @var string
+     */
     private $mimeType = 'dir';
+    /**
+     * @var null
+     */
     private $extension = null;
+    /**
+     * @var
+     */
     private $size;
+    /**
+     * @var
+     */
     private $type;
 
     /**
      * BlobMetadata initializer.
      * @param $path
      * @return BlobMetadata $this
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     * @throws \League\Flysystem\FilesystemException
      */
     public function init($path)
     {
@@ -38,17 +72,36 @@ class BlobMetadata implements ICripObject
         $this->path = $path;
 
         $this->type = blank(File::extension($path)) ? 'dir' : 'file';
-        if ($this->exists()) {
-            list($this->dir, $this->name) = FileSystem::splitNameFromPath($path);
+        [$this->dir, $this->name] = FileSystem::splitNameFromPath($path);
 
-            $this->size = 0;
+        $this->size = $this->storage->fileSize($this->path);
+        $this->lastModified = $this->storage->lastModified($this->path);
 
-            if ($this->isFile()) {
-                list($this->name, $this->extension) = $this->splitNameAndExtension($this->name);
-                $this->extension = strtolower($this->extension);
-                $this->mimeType = self::guessMimeType($this->extension, $this->isFile());
-            }
+        if ($this->isFile()) {
+            [$this->name, $this->extension] = $this->splitNameAndExtension($this->name);
+            $this->extension = strtolower($this->extension);
+            $this->mimeType = self::guessMimeType($this->extension, $this->isFile());
         }
+
+        return $this;
+    }
+
+    /**
+     * @param StorageAttributes $glob
+     * @return $this
+     * @throws \Illuminate\Contracts\Container\BindingResolutionException
+     */
+    public function initGlob(StorageAttributes $glob)
+    {
+        [$this->dir, $this->name] = FileSystem::splitNameFromPath($glob->path());
+        [$this->name, $this->extension] = $this->splitNameAndExtension($this->name);
+
+        $this->storage = app()->make('filesystem');
+        $this->path = $glob->path();
+        $this->type = $glob->type();
+        $this->size = $glob->isFile() ? $glob->fileSize() : 0;
+        $this->lastModified = $glob->lastModified();
+        $this->mimeType = $glob->isDir() ? 'dir' : ($glob->mimeType() ?? self::guessMimeType($this->extension, $glob->isFile()));
 
         return $this;
     }
@@ -198,7 +251,7 @@ class BlobMetadata implements ICripObject
     {
         $info = pathinfo($fullName);
 
-        return [$info['filename'], $info['extension']];
+        return [Arr::get($info, 'filename'), Arr::get($info, 'extension')];
     }
 
     /**
