@@ -67,7 +67,7 @@ class ThumbService
         $file = $this->storage->get($pathToImage);
 
         $this->sizes->each(function ($size, $key) use ($pathToImage, $file) {
-            $img = app(ImageManager::class)->make($file);
+            $img = app(ImageManager::class)->read($file);
             $path = $this->createThumbPath($pathToImage, $key);
 
             switch ($size[2]) {
@@ -85,11 +85,11 @@ class ThumbService
                     break;
                 // 'resize' or any other fullbacks to this
                 default:
-                    $img->fit($size[0], $size[1]);
+                    $img->resizeDown($size[0], $size[1]);
                     break;
             }
 
-            $this->storage->put($path, $img->stream()->__toString());
+            $this->storage->put($path, $img->toJpeg()->toFilePointer());
         });
     }
 
@@ -102,7 +102,7 @@ class ThumbService
     {
         $this->sizes->keys()->each(function ($size) use ($pathToImage, $newName) {
             $existing = $this->createThumbPath($pathToImage, $size);
-            list($path) = $this->getThumbPath($pathToImage, $size);
+            [$path] = $this->getThumbPath($pathToImage, $size);
 
             if ($this->storage->exists($existing)) {
                 $this->storage->move($existing, $path . '/' . $newName);
@@ -118,7 +118,7 @@ class ThumbService
     public function delete($pathToImage, $isDir = false)
     {
         $this->sizes->keys()->each(function ($size) use ($pathToImage, $isDir) {
-            list($path, $name) = $this->getThumbPath($pathToImage, $size);
+            [$path, $name] = $this->getThumbPath($pathToImage, $size);
             $file = $path . '/' . $name;
             if ($this->storage->exists($file)) {
                 if (!$isDir) {
@@ -138,7 +138,7 @@ class ThumbService
      */
     public function createThumbPath($originalFilePath, $thumbSizeIdentifier)
     {
-        list($path, $file) = $this->getThumbPath($originalFilePath, $thumbSizeIdentifier);
+        [$path, $file] = $this->getThumbPath($originalFilePath, $thumbSizeIdentifier);
 
         // Make sure dir exists for thumb
         $this->storage->makeDirectory($path, 0777, true, true);
@@ -157,6 +157,6 @@ class ThumbService
         $fileName = array_pop($parts);
         array_unshift($parts, $thumbSizeIdentifier);
 
-        return [join('/', $parts), $fileName];
+        return [implode('/', $parts), $fileName];
     }
 }
