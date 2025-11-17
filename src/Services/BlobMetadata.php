@@ -74,10 +74,9 @@ class BlobMetadata implements ICripObject
         $this->type = blank(File::extension($path)) ? 'dir' : 'file';
         [$this->dir, $this->name] = FileSystem::splitNameFromPath($path);
 
-        $this->size = $this->storage->fileSize($this->path);
-        $this->lastModified = $this->storage->lastModified($this->path);
-
         if ($this->isFile()) {
+            $this->size = $this->storage->fileSize($this->path);
+            $this->lastModified = $this->storage->lastModified($this->path);
             [$this->name, $this->extension] = $this->splitNameAndExtension($this->name);
             $this->extension = strtolower($this->extension);
             $this->mimeType = self::guessMimeType($this->extension, $this->isFile());
