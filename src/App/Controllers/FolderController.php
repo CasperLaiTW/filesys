@@ -45,7 +45,7 @@ class FolderController extends BaseController
      * @param string $folder
      * @return JsonResponse
      */
-    public function show($folder)
+    public function show($folder = '')
     {
         $this->manager->resetPath($folder);
 
